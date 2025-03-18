@@ -21,10 +21,10 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
       <div className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-serif">My Journal</h1>
+          <h1 className="text-4xl font-serif text-white">My Journal</h1>
           <Link href="/entry/new">
             <Button>
               <PenLine className="mr-2 h-4 w-4" />
@@ -45,9 +45,9 @@ export default function Home() {
 
           {/* Sidebar - Calendar and Prompt */}
           <div className="lg:col-span-1 flex justify-center lg:block">
-            <Card className="sticky top-8 w-full max-w-sm lg:max-w-none">
+            <Card className="sticky top-8 w-full max-w-sm lg:max-w-none bg-white/10 backdrop-blur-lg border-white/20">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-white">
                   <CalendarIcon className="h-5 w-5" />
                   Calendar & Prompt
                 </CardTitle>
@@ -56,12 +56,12 @@ export default function Home() {
                 <DayPicker
                   mode="single"
                   selected={new Date()}
-                  className="rounded-md border shadow-sm mx-auto w-full [&_.rdp-nav]:text-sm [&_.rdp]:max-w-full [&_.rdp-caption]:text-sm [&_.rdp-cell]:p-0 [&_.rdp-button]:w-9 [&_.rdp-button]:h-9 [&_.rdp-head_th]:p-0 [&_.rdp-tbody]:gap-1"
+                  className="rounded-md border shadow-sm mx-auto w-full [&_.rdp-nav]:text-sm [&_.rdp]:max-w-full [&_.rdp-caption]:text-sm [&_.rdp-cell]:p-0 [&_.rdp-button]:w-9 [&_.rdp-button]:h-9 [&_.rdp-head_th]:p-0 [&_.rdp-tbody]:gap-1 text-white [&_.rdp-day_button:hover]:bg-white/20 [&_.rdp-day_button]:hover:text-white"
                 />
 
-                <div className="mt-6 p-4 bg-accent/20 rounded-lg">
-                  <h3 className="font-semibold mb-2">Today's Prompt</h3>
-                  <p className="text-sm italic">{dailyPrompt}</p>
+                <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                  <h3 className="font-semibold mb-2 text-white">Today's Prompt</h3>
+                  <p className="text-sm italic text-white/80">{dailyPrompt}</p>
                   <Link href={`/entry/new?prompt=${encodeURIComponent(dailyPrompt)}`}>
                     <Button className="mt-4 w-full" variant="outline">
                       Write about this
