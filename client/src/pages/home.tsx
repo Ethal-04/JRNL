@@ -56,7 +56,7 @@ export default function Home() {
                 <DayPicker
                   mode="single"
                   selected={new Date()}
-                  className="rounded-md border shadow-sm"
+                  className="rounded-md border shadow-sm mx-auto w-full [&_.rdp-nav]:text-sm [&_.rdp]:max-w-full [&_.rdp-caption]:text-sm [&_.rdp-cell]:p-0 [&_.rdp-button]:w-9 [&_.rdp-button]:h-9 [&_.rdp-head_th]:p-0 [&_.rdp-tbody]:gap-1"
                 />
 
                 <div className="mt-6 p-4 bg-accent/20 rounded-lg">
