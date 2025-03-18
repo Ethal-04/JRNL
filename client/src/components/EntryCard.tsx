@@ -10,21 +10,21 @@ interface EntryCardProps {
 export function EntryCard({ entry }: EntryCardProps) {
   return (
     <Link href={`/entry/${entry.id}`}>
-      <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+      <Card className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col bg-white/80 backdrop-blur">
         <CardHeader>
-          <CardTitle className="text-lg font-serif">{entry.title}</CardTitle>
+          <CardTitle className="text-lg font-serif line-clamp-2">{entry.title}</CardTitle>
           <div className="text-sm text-muted-foreground">
             {format(new Date(entry.date), "MMMM d, yyyy")}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 overflow-hidden">
           {entry.prompt && (
-            <div className="text-sm italic text-muted-foreground mb-2">
+            <div className="text-sm italic text-muted-foreground mb-2 line-clamp-1">
               Prompt: {entry.prompt}
             </div>
           )}
           <div
-            className="line-clamp-3 text-sm"
+            className="line-clamp-6 text-sm prose-sm"
             dangerouslySetInnerHTML={{ __html: entry.content }}
           />
         </CardContent>
