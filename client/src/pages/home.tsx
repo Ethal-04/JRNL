@@ -35,7 +35,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-serif text-white">My Journal</h1>
           <Link href="/entry/new">
-            <Button>
+            <Button className="bg-white/10 hover:bg-white/20 backdrop-blur border-white/20 text-white">
               <PenLine className="mr-2 h-4 w-4" />
               New Entry
             </Button>
@@ -72,7 +72,7 @@ export default function Home() {
                   <h3 className="font-semibold mb-2 text-white">Today's Prompt</h3>
                   <p className="text-sm italic text-white/80">{dailyPrompt}</p>
                   <Link href={`/entry/new?prompt=${encodeURIComponent(dailyPrompt)}`}>
-                    <Button className="mt-4 w-full" variant="outline">
+                    <Button className="mt-4 w-full bg-white/10 hover:bg-white/20 backdrop-blur border-white/20 text-white">
                       Write about this
                     </Button>
                   </Link>
