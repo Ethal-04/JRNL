@@ -44,8 +44,8 @@ export default function Home() {
           </div>
 
           {/* Sidebar - Calendar and Prompt */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-8">
+          <div className="lg:col-span-1 flex justify-center lg:block">
+            <Card className="sticky top-8 w-full max-w-sm lg:max-w-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CalendarIcon className="h-5 w-5" />
