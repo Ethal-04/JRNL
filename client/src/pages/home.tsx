@@ -21,7 +21,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 relative">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 relative">
       {/* Star pattern overlay */}
       <div 
         className="absolute inset-0 opacity-10"
