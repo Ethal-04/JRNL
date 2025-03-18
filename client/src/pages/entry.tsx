@@ -14,13 +14,15 @@ export default function EntryPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { id } = useParams<{ id: string }>();
-  const [, params] = useLocation();
+  const [location] = useLocation();
   const isNew = id === "new";
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const searchParams = new URLSearchParams(params.split('?')[1] || '');
-  const prompt = searchParams.get("prompt") || undefined;
+
+  // Get prompt from URL if it exists
+  const promptParam = new URLSearchParams(location.search).get('prompt');
+  const prompt = promptParam || undefined;
 
   const { data: entry } = useQuery<Entry>({
     queryKey: [`/api/entries/${id}`],
