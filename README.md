@@ -1,6 +1,4 @@
-Got it! Here’s a refined **GitHub README** app description that matches your app’s layout:  
 
----
 
 # JRNL 📝
 
