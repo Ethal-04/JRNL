@@ -34,9 +34,7 @@ export default function EntryPage() {
 
   // Update state when entry data is loaded
   useEffect(() => {
-    if (entry) {
-      setTitle(entry.title);
-      setContent(entry.content);
+    if (entry?.emotions) {
       setEmotions(entry.emotions);
     }
   }, [entry]);
