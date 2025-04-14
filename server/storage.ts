@@ -9,7 +9,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private entries: Map<number, Entry>;
+  private entries: Map<string, Map<number, Entry>>;
   private currentId: number;
 
   constructor() {
@@ -17,8 +17,9 @@ export class MemStorage implements IStorage {
     this.currentId = 1;
   }
 
-  async getEntries(search?: string, startDate?: Date, endDate?: Date): Promise<Entry[]> {
-    let entries = Array.from(this.entries.values());
+  async getEntries(userId: string, search?: string, startDate?: Date, endDate?: Date): Promise<Entry[]> {
+    const userEntries = this.entries.get(userId) || new Map();
+    let entries = Array.from(userEntries.values());
     
     if (search) {
       entries = entries.filter(entry => 
