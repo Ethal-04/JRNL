@@ -66,7 +66,7 @@ export default function Home() {
           {/* Main Content - Journal Entries */}
           <div className="lg:col-span-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {entries && Array.isArray(entries) && entries.map((entry) => (
+              {entries?.map((entry) => (
                 <EntryCard key={entry.id} entry={entry} />
               ))}
             </div>
