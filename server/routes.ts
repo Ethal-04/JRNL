@@ -2,9 +2,29 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { insertEntrySchema } from "@shared/schema";
-import { authenticate } from "./auth";
+import { authenticate, registerUser } from "./auth";
+import passport from "passport";
 
 export async function registerRoutes(app: Express) {
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const user = await registerUser(username, password);
+      res.status(201).json({ message: "User created successfully" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
+    res.json({ message: "Logged in successfully" });
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout(() => {
+      res.json({ message: "Logged out successfully" });
+    });
+  });
   app.get("/api/entries", authenticate, async (req, res) => {
     const { search, startDate, endDate } = req.query;
     const entries = await storage.getEntries(req.user.id);
