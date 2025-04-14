@@ -8,7 +8,7 @@ export const entries = pgTable("entries", {
   content: text("content").notNull(),
   date: timestamp("date").notNull().defaultNow(),
   prompt: text("prompt"),
-  sentiment: text("sentiment"),
+  emotions: text("emotions").array(),
   keywords: text("keywords"),
 });
 

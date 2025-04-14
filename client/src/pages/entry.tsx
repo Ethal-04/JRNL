@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import type { Entry } from "@shared/schema";
 import { ArrowLeft, Save, Trash } from "lucide-react";
 import React from 'react';
+import { Badge } from "@/components/ui/badge";
 
 export default function EntryPage() {
   const [, setLocation] = useLocation();
@@ -16,13 +17,15 @@ export default function EntryPage() {
   const { id } = useParams<{ id: string }>();
   const [location] = useLocation();
   const isNew = id === "new";
+  const searchParams = new URLSearchParams(location.search);
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState(entry?.title ?? "");
+  const [content, setContent] = useState(entry?.content ?? "");
+  const [prompt] = useState(searchParams.get("prompt") ?? "");
+  const [emotions, setEmotions] = useState<string[]>(entry?.emotions ?? []);
+  const [customEmotion, setCustomEmotion] = useState("");
 
-  // Get prompt from URL if it exists
-  const promptParam = new URLSearchParams(location.search).get('prompt');
-  const prompt = promptParam || undefined;
+  const defaultEmotions = ["happy", "excited", "peaceful", "sad", "angry", "frustrated", "anxious"];
 
   const { data: entry } = useQuery<Entry>({
     queryKey: [`/api/entries/${id}`],
@@ -34,6 +37,7 @@ export default function EntryPage() {
     if (entry) {
       setTitle(entry.title);
       setContent(entry.content);
+      setEmotions(entry.emotions);
     }
   }, [entry]);
 
@@ -43,6 +47,7 @@ export default function EntryPage() {
         title,
         content,
         prompt,
+        emotions,
       });
       return res.json();
     },
@@ -61,6 +66,7 @@ export default function EntryPage() {
       const res = await apiRequest("PATCH", `/api/entries/${id}`, {
         title,
         content,
+        emotions,
       });
       return res.json();
     },
@@ -128,12 +134,50 @@ export default function EntryPage() {
         </div>
       )}
 
-      <Input
-        className="text-2xl font-serif mb-4"
-        placeholder="Entry Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+      <div className="space-y-4">
+        <Input
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <div className="flex flex-wrap gap-2">
+          {defaultEmotions.map(emotion => (
+            <Badge
+              key={emotion}
+              variant={emotions.includes(emotion) ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => {
+                setEmotions(prev =>
+                  prev.includes(emotion)
+                    ? prev.filter(e => e !== emotion)
+                    : [...prev, emotion]
+                )
+              }}
+            >
+              {emotion}
+            </Badge>
+          ))}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add custom emotion"
+              value={customEmotion}
+              onChange={(e) => setCustomEmotion(e.target.value)}
+              className="w-32"
+            />
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (customEmotion && !emotions.includes(customEmotion)) {
+                  setEmotions(prev => [...prev, customEmotion]);
+                  setCustomEmotion("");
+                }
+              }}
+            >
+              Add
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <Editor content={content} onChange={setContent} />
     </div>

@@ -9,12 +9,7 @@ interface EntryCardProps {
 }
 
 export function EntryCard({ entry }: { entry: Entry }) {
-  const sentiment = entry.sentiment || 'neutral';
-  const sentimentColor = {
-    positive: 'bg-green-500',
-    negative: 'bg-red-500',
-    neutral: 'bg-gray-500'
-  }[sentiment];
+  const emotions = entry.emotions || [];
   return (
     <Link href={`/entry/${entry.id}`}>
       <Card className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col bg-white/10 backdrop-blur border-white/20">
@@ -23,7 +18,11 @@ export function EntryCard({ entry }: { entry: Entry }) {
           <div className="text-sm text-white/70">
             {format(new Date(entry.date), "MMMM d, yyyy")}
           </div>
-          <Badge className={sentimentColor}>{sentiment}</Badge>
+          <div className="flex flex-wrap gap-1">
+            {emotions.map(emotion => (
+              <Badge key={emotion} variant="outline">{emotion}</Badge>
+            ))}
+          </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           {entry.prompt && (
