@@ -1,78 +1,127 @@
+
+import { createObjectCsvWriter } from 'csv-writer';
+import csv from 'csv-parser';
+import fs from 'fs';
+import path from 'path';
 import { entries, type Entry, type InsertEntry } from "@shared/schema";
 
-export interface IStorage {
-  getEntries(): Promise<Entry[]>;
-  getEntry(id: number): Promise<Entry | undefined>;
-  createEntry(entry: InsertEntry): Promise<Entry>;
-  updateEntry(id: number, entry: Partial<InsertEntry>): Promise<Entry | undefined>;
-  deleteEntry(id: number): Promise<boolean>;
+const STORAGE_DIR = 'data';
+
+if (!fs.existsSync(STORAGE_DIR)) {
+  fs.mkdirSync(STORAGE_DIR);
 }
 
-export class MemStorage implements IStorage {
-  private entries: Map<string, Map<number, Entry>>;
-  private currentId: number;
+export interface IStorage {
+  getEntries(userId: string): Promise<Entry[]>;
+  getEntry(userId: string, id: number): Promise<Entry | undefined>;
+  createEntry(userId: string, entry: InsertEntry): Promise<Entry>;
+  updateEntry(userId: string, id: number, entry: Partial<InsertEntry>): Promise<Entry | undefined>;
+  deleteEntry(userId: string, id: number): Promise<boolean>;
+}
 
-  constructor() {
-    this.entries = new Map();
-    this.currentId = 1;
+export class CsvStorage implements IStorage {
+  private getUserFile(userId: string) {
+    return path.join(STORAGE_DIR, `${userId}.csv`);
   }
 
-  async getEntries(userId: string, search?: string, startDate?: Date, endDate?: Date): Promise<Entry[]> {
-    const userEntries = this.entries.get(userId) || new Map();
-    let entries = Array.from(userEntries.values());
-    
-    if (search) {
-      entries = entries.filter(entry => 
-        entry.title.toLowerCase().includes(search.toLowerCase()) ||
-        entry.content.toLowerCase().includes(search.toLowerCase())
-      );
+  private async readEntries(userId: string): Promise<Entry[]> {
+    const filePath = this.getUserFile(userId);
+    if (!fs.existsSync(filePath)) {
+      return [];
     }
-    
-    if (startDate) {
-      entries = entries.filter(entry => new Date(entry.date) >= startDate);
-    }
-    
-    if (endDate) {
-      entries = entries.filter(entry => new Date(entry.date) <= endDate);
-    }
-    
-    return entries.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+
+    return new Promise((resolve) => {
+      const entries: Entry[] = [];
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (row) => {
+          entries.push({
+            ...row,
+            id: parseInt(row.id),
+            date: new Date(row.date),
+            emotions: row.emotions ? JSON.parse(row.emotions) : []
+          });
+        })
+        .on('end', () => {
+          resolve(entries);
+        });
+    });
   }
 
-  async getEntry(id: number): Promise<Entry | undefined> {
-    return this.entries.get(id);
+  private async writeEntries(userId: string, entries: Entry[]) {
+    const csvWriter = createObjectCsvWriter({
+      path: this.getUserFile(userId),
+      header: [
+        { id: 'id', title: 'id' },
+        { id: 'title', title: 'title' },
+        { id: 'content', title: 'content' },
+        { id: 'date', title: 'date' },
+        { id: 'prompt', title: 'prompt' },
+        { id: 'emotions', title: 'emotions' }
+      ]
+    });
+
+    await csvWriter.writeRecords(entries.map(entry => ({
+      ...entry,
+      emotions: JSON.stringify(entry.emotions)
+    })));
   }
 
-  async createEntry(insertEntry: InsertEntry): Promise<Entry> {
-    const id = this.currentId++;
+  async getEntries(userId: string): Promise<Entry[]> {
+    return this.readEntries(userId);
+  }
+
+  async getEntry(userId: string, id: number): Promise<Entry | undefined> {
+    const entries = await this.readEntries(userId);
+    return entries.find(entry => entry.id === id);
+  }
+
+  async createEntry(userId: string, insertEntry: InsertEntry): Promise<Entry> {
+    const entries = await this.readEntries(userId);
+    const id = entries.length > 0 ? Math.max(...entries.map(e => e.id)) + 1 : 1;
+    
     const entry: Entry = {
       ...insertEntry,
       id,
       date: new Date(),
       prompt: insertEntry.prompt ?? null,
+      emotions: insertEntry.emotions ?? []
     };
-    this.entries.set(id, entry);
+
+    entries.push(entry);
+    await this.writeEntries(userId, entries);
     return entry;
   }
 
-  async updateEntry(id: number, updateEntry: Partial<InsertEntry>): Promise<Entry | undefined> {
-    const existing = this.entries.get(id);
-    if (!existing) return undefined;
+  async updateEntry(userId: string, id: number, updateEntry: Partial<InsertEntry>): Promise<Entry | undefined> {
+    const entries = await this.readEntries(userId);
+    const index = entries.findIndex(entry => entry.id === id);
+    
+    if (index === -1) return undefined;
 
     const updated: Entry = {
-      ...existing,
+      ...entries[index],
       ...updateEntry,
-      prompt: updateEntry.prompt ?? existing.prompt,
+      prompt: updateEntry.prompt ?? entries[index].prompt,
+      emotions: updateEntry.emotions ?? entries[index].emotions
     };
-    this.entries.set(id, updated);
+
+    entries[index] = updated;
+    await this.writeEntries(userId, entries);
     return updated;
   }
 
-  async deleteEntry(id: number): Promise<boolean> {
-    return this.entries.delete(id);
+  async deleteEntry(userId: string, id: number): Promise<boolean> {
+    const entries = await this.readEntries(userId);
+    const filtered = entries.filter(entry => entry.id !== id);
+    
+    if (filtered.length === entries.length) {
+      return false;
+    }
+
+    await this.writeEntries(userId, filtered);
+    return true;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new CsvStorage();

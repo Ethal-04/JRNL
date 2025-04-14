@@ -6,33 +6,31 @@ import { authenticate, registerUser } from "./auth";
 import passport from "passport";
 
 export async function registerRoutes(app: Express) {
-  app.get('/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-  );
-
-  app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    (req, res) => {
-      res.redirect('/');
-    }
-  );
-
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { username, password } = req.body;
-      const user = await registerUser(username, password);
+      await registerUser(username, password);
+      req.session.user = username;
       res.status(201).json({ message: "User created successfully" });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
   });
 
-  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
-    res.json({ message: "Logged in successfully" });
+  app.post("/api/auth/login", async (req, res) => {
+    const { username, password } = req.body;
+    const isValid = await verifyUser(username, password);
+    
+    if (isValid) {
+      req.session.user = username;
+      res.json({ message: "Logged in successfully" });
+    } else {
+      res.status(401).json({ message: "Invalid credentials" });
+    }
   });
 
-  app.post('/auth/logout', (req, res) => {
-    req.logout(() => {
+  app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy(() => {
       res.json({ message: "Logged out successfully" });
     });
   });
