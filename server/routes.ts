@@ -6,6 +6,17 @@ import { authenticate, registerUser } from "./auth";
 import passport from "passport";
 
 export async function registerRoutes(app: Express) {
+  app.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    (req, res) => {
+      res.redirect('/');
+    }
+  );
+
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { username, password } = req.body;
@@ -20,7 +31,7 @@ export async function registerRoutes(app: Express) {
     res.json({ message: "Logged in successfully" });
   });
 
-  app.post("/api/auth/logout", (req, res) => {
+  app.post('/auth/logout', (req, res) => {
     req.logout(() => {
       res.json({ message: "Logged out successfully" });
     });

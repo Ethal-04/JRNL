@@ -1,14 +1,17 @@
-
 import { Request, Response, NextFunction } from "express";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import bcrypt from "bcryptjs";
 
 // In-memory user store (replace with database in production)
 const users = new Map<string, {
   id: string;
-  username: string;
-  password: string;
+  email?: string;
+  username?: string;
+  password?: string;
+  name?: string;
+  profilePic?: string;
   isReplitUser?: boolean;
 }>();
 
@@ -17,14 +20,39 @@ passport.use(new LocalStrategy(async (username, password, done) => {
   if (!user) {
     return done(null, false, { message: "Incorrect username" });
   }
-  
-  const isValid = await bcrypt.compare(password, user.password);
+
+  const isValid = await bcrypt.compare(password, user.password!);
   if (!isValid) {
     return done(null, false, { message: "Incorrect password" });
   }
-  
+
   return done(null, user);
 }));
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID || '',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    callbackURL: "/auth/google/callback"
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails?.[0]?.value;
+    if (!email) {
+      return done(new Error("No email found"));
+    }
+
+    let user = Array.from(users.values()).find(u => u.email === email);
+    if (!user) {
+      user = {
+        id: profile.id,
+        email: email,
+        name: profile.displayName,
+        profilePic: profile.photos?.[0]?.value
+      };
+      users.set(user.id, user);
+    }
+    return done(null, user);
+  }
+));
 
 passport.serializeUser((user: any, done) => {
   done(null, user.id);
@@ -36,31 +64,9 @@ passport.deserializeUser((id: string, done) => {
 });
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  // Check for Replit auth first
-  const replitUserId = req.headers['x-replit-user-id'];
-  const replitUsername = req.headers['x-replit-user-name'];
-  
-  if (replitUserId && replitUsername) {
-    let user = users.get(replitUserId as string);
-    if (!user) {
-      // Create user entry for Replit user
-      user = {
-        id: replitUserId as string,
-        username: replitUsername as string,
-        password: '', // No password for Replit users
-        isReplitUser: true
-      };
-      users.set(user.id, user);
-    }
-    req.user = user;
-    return next();
-  }
-
-  // Check local auth
   if (req.isAuthenticated()) {
     return next();
   }
-
   return res.status(401).json({ message: "Please login to continue" });
 };
 
@@ -76,7 +82,7 @@ export const registerUser = async (username: string, password: string) => {
     username,
     password: hashedPassword
   };
-  
+
   users.set(id, user);
   return user;
 };
