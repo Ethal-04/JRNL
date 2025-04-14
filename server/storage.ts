@@ -1,9 +1,9 @@
-
 import { createObjectCsvWriter } from 'csv-writer';
 import { Entry } from '@shared/schema';
 import fs from 'fs';
 import path from 'path';
 import csv from 'csv-parser';
+import { entries, type InsertEntry } from "@shared/schema";
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 if (!fs.existsSync(DATA_DIR)) {
@@ -64,43 +64,45 @@ export class CsvStorage {
     return entries.find(entry => entry.id === id);
   }
 
-  async createEntry(entry: Omit<Entry, 'id' | 'date'>): Promise<Entry> {
+  async createEntry(insertEntry: InsertEntry): Promise<Entry> {
     const entries = await this.readEntries();
     const id = entries.length > 0 ? Math.max(...entries.map(e => e.id)) + 1 : 1;
 
-    const newEntry: Entry = {
-      ...entry,
+    const entry: Entry = {
+      ...insertEntry,
       id,
       date: new Date(),
-      emotions: entry.emotions ?? []
+      prompt: insertEntry.prompt ?? null,
+      emotions: insertEntry.emotions ?? []
     };
 
-    entries.push(newEntry);
+    entries.push(entry);
     await this.writeEntries(entries);
-    return newEntry;
+    return entry;
   }
 
-  async updateEntry(id: number, updates: Partial<Entry>): Promise<Entry | undefined> {
+  async updateEntry(id: number, updateEntry: Partial<InsertEntry>): Promise<Entry | undefined> {
     const entries = await this.readEntries();
     const index = entries.findIndex(entry => entry.id === id);
-    
+
     if (index === -1) return undefined;
 
-    entries[index] = {
+    const updated: Entry = {
       ...entries[index],
-      ...updates,
-      id: entries[index].id,
-      date: entries[index].date
+      ...updateEntry,
+      prompt: updateEntry.prompt ?? entries[index].prompt,
+      emotions: updateEntry.emotions ?? entries[index].emotions
     };
 
+    entries[index] = updated;
     await this.writeEntries(entries);
-    return entries[index];
+    return updated;
   }
 
   async deleteEntry(id: number): Promise<boolean> {
     const entries = await this.readEntries();
     const filtered = entries.filter(entry => entry.id !== id);
-    
+
     if (filtered.length === entries.length) {
       return false;
     }
