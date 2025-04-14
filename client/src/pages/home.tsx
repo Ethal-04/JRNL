@@ -44,7 +44,16 @@ export default function Home() {
 
       <div className="container mx-auto py-8 px-4 relative">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-serif text-white">My Journal</h1>
+          <div>
+            <h1 className="text-4xl font-serif text-white mb-4">My Journal</h1>
+            <input
+              type="search"
+              placeholder="Search entries..."
+              className="w-full p-2 rounded-md bg-white/10 text-white"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
           <Link href="/entry/new">
             <Button className="bg-white/10 hover:bg-white/20 backdrop-blur border-white/20 text-white">
               <PenLine className="mr-2 h-4 w-4" />

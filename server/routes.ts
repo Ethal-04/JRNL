@@ -5,7 +5,8 @@ import { insertEntrySchema } from "@shared/schema";
 import { authenticate } from "./auth";
 
 export async function registerRoutes(app: Express) {
-  app.get("/api/entries", async (_req, res) => {
+  app.get("/api/entries", async (req, res) => {
+  const { search, startDate, endDate } = req.query;
     const entries = await storage.getEntries();
     res.json(entries);
   });

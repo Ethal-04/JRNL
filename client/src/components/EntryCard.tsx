@@ -2,12 +2,19 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { format } from "date-fns";
 import type { Entry } from "@shared/schema";
 import { Link } from "wouter";
+import { Badge } from "./ui/badge";
 
 interface EntryCardProps {
   entry: Entry;
 }
 
-export function EntryCard({ entry }: EntryCardProps) {
+export function EntryCard({ entry }: { entry: Entry }) {
+  const sentiment = entry.sentiment || 'neutral';
+  const sentimentColor = {
+    positive: 'bg-green-500',
+    negative: 'bg-red-500',
+    neutral: 'bg-gray-500'
+  }[sentiment];
   return (
     <Link href={`/entry/${entry.id}`}>
       <Card className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col bg-white/10 backdrop-blur border-white/20">
@@ -16,6 +23,7 @@ export function EntryCard({ entry }: EntryCardProps) {
           <div className="text-sm text-white/70">
             {format(new Date(entry.date), "MMMM d, yyyy")}
           </div>
+          <Badge className={sentimentColor}>{sentiment}</Badge>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           {entry.prompt && (
