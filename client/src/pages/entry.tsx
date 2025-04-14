@@ -19,15 +19,18 @@ export default function EntryPage() {
   const isNew = id === "new";
   const searchParams = new URLSearchParams(location.search);
 
-  const [title, setTitle] = useState(entry?.title ?? "");
-  const [content, setContent] = useState(entry?.content ?? "");
+  const { data: entry } = useQuery<Entry>({
+    queryKey: [`/api/entries/${id}`],
+    enabled: !isNew,
+  });
+
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [prompt] = useState(searchParams.get("prompt") ?? "");
-  const [emotions, setEmotions] = useState<string[]>(entry?.emotions ?? []);
+  const [emotions, setEmotions] = useState<string[]>([]);
   const [customEmotion, setCustomEmotion] = useState("");
 
   const defaultEmotions = ["happy", "excited", "peaceful", "sad", "angry", "frustrated", "anxious"];
-
-  const { data: entry } = useQuery<Entry>({
     queryKey: [`/api/entries/${id}`],
     enabled: !isNew,
   });
