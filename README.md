@@ -22,13 +22,17 @@
 ## Running Locally
 
 1️⃣ Clone the Repository:
+
 git clone https://github.com/Ethal-04/JRNL.git
+
 cd JRNL
 
-2️⃣ Install Dependencies
+2️⃣ Install Dependencies:
+
 pip install -r requirements.txt
 
-3️⃣ Run the App
+3️⃣ Run the App:
+
 streamlit run app.py
 
 Open http://localhost:8501 in your browser to view the app.
