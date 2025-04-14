@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { EntryCard } from "@/components/EntryCard";
 import { Button } from "@/components/ui/button";
