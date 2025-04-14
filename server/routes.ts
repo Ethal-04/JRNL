@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { insertEntrySchema } from "@shared/schema";
+import { authenticate } from "./auth";
 
 export async function registerRoutes(app: Express) {
   app.get("/api/entries", async (_req, res) => {

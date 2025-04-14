@@ -8,6 +8,8 @@ export const entries = pgTable("entries", {
   content: text("content").notNull(),
   date: timestamp("date").notNull().defaultNow(),
   prompt: text("prompt"),
+  sentiment: text("sentiment"),
+  keywords: text("keywords"),
 });
 
 export const insertEntrySchema = createInsertSchema(entries).pick({

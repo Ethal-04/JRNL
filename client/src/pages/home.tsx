@@ -10,8 +10,18 @@ import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
 export default function Home() {
+  const [search, setSearch] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date>();
+
   const { data: entries, isLoading } = useQuery<Entry[]>({
-    queryKey: ["/api/entries"],
+    queryKey: ["/api/entries", search, selectedDate],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (selectedDate) params.append("date", selectedDate.toISOString());
+      const response = await fetch(`/api/entries?${params}`);
+      return response.json();
+    }
   });
 
   const dailyPrompt = getDailyPrompt();

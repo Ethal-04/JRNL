@@ -17,8 +17,25 @@ export class MemStorage implements IStorage {
     this.currentId = 1;
   }
 
-  async getEntries(): Promise<Entry[]> {
-    return Array.from(this.entries.values()).sort((a, b) => 
+  async getEntries(search?: string, startDate?: Date, endDate?: Date): Promise<Entry[]> {
+    let entries = Array.from(this.entries.values());
+    
+    if (search) {
+      entries = entries.filter(entry => 
+        entry.title.toLowerCase().includes(search.toLowerCase()) ||
+        entry.content.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    if (startDate) {
+      entries = entries.filter(entry => new Date(entry.date) >= startDate);
+    }
+    
+    if (endDate) {
+      entries = entries.filter(entry => new Date(entry.date) <= endDate);
+    }
+    
+    return entries.sort((a, b) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }
