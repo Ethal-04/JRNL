@@ -11,7 +11,7 @@ import { ArrowLeft, Save, Trash } from "lucide-react";
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 
-export default function EntryPage() {
+const EntryPage = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { id } = useParams<{ id: string }>();
@@ -181,3 +181,5 @@ export default function EntryPage() {
     </div>
   );
 }
+
+export default EntryPage;
