@@ -21,7 +21,11 @@ const EntryPage = () => {
 
   const { data: entry } = useQuery<Entry>({
     queryKey: [`/api/entries/${id}`],
-    enabled: !isNew,
+    queryFn: async () => {
+      const response = await fetch(`/api/entries/${id}`);
+      return response.json();
+    },
+    enabled: !isNew && !!id,
   });
 
   const [title, setTitle] = useState("");
