@@ -31,9 +31,6 @@ export default function EntryPage() {
   const [customEmotion, setCustomEmotion] = useState("");
 
   const defaultEmotions = ["happy", "excited", "peaceful", "sad", "angry", "frustrated", "anxious"];
-    queryKey: [`/api/entries/${id}`],
-    enabled: !isNew,
-  });
 
   // Update state when entry data is loaded
   useEffect(() => {
