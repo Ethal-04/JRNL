@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { EntryCard } from "@/components/EntryCard";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export default function Home() {
           {/* Main Content - Journal Entries */}
           <div className="lg:col-span-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {entries?.map((entry) => (
+              {entries && Array.isArray(entries) && entries.map((entry) => (
                 <EntryCard key={entry.id} entry={entry} />
               ))}
             </div>
