@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import fs from 'fs';
 import path from 'path';
+import express from 'express';
+import { getUserDataPath } from './storage';
+
 
 const USERS_FILE = path.join('data', 'users.json');
 
@@ -55,9 +58,37 @@ export const verifyUser = async (username: string, password: string) => {
   return bcrypt.compare(password, user.password);
 };
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  if (req.session.user) {
-    return next();
+
+const router = express.Router();
+
+let currentUser: string | null = null;
+
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password required' });
   }
-  return res.status(401).json({ message: "Please login to continue" });
-};
+
+  const userExists = await verifyUser(username, password);
+  if (!userExists) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  currentUser = username;
+  const userPath = getUserDataPath(username);
+  if (!fs.existsSync(userPath)) {
+    fs.writeFileSync(userPath, '');
+  }
+  res.json({ message: 'Logged in successfully' });
+});
+
+router.get('/current', (req, res) => {
+  if (!currentUser) {
+    return res.status(401).json({ message: 'Not logged in' });
+  }
+  res.json({ username: currentUser });
+});
+
+export const getCurrentUser = () => currentUser;
+
+export default router;

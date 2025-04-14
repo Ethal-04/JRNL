@@ -1,15 +1,16 @@
-
 import { createObjectCsvWriter } from 'csv-writer';
-import csv from 'csv-parser';
+import { Entry } from '@shared/schema';
 import fs from 'fs';
 import path from 'path';
-import { entries, type Entry, type InsertEntry } from "@shared/schema";
 
-const STORAGE_DIR = 'data';
-
-if (!fs.existsSync(STORAGE_DIR)) {
-  fs.mkdirSync(STORAGE_DIR);
+const DATA_DIR = path.join(process.cwd(), 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR);
 }
+
+export const getUserDataPath = (username: string) => {
+  return path.join(DATA_DIR, `${username}.csv`);
+};
 
 export interface IStorage {
   getEntries(userId: string): Promise<Entry[]>;
@@ -21,7 +22,7 @@ export interface IStorage {
 
 export class CsvStorage implements IStorage {
   private getUserFile(userId: string) {
-    return path.join(STORAGE_DIR, `${userId}.csv`);
+    return getUserDataPath(userId); // Using the new function
   }
 
   private async readEntries(userId: string): Promise<Entry[]> {
@@ -79,7 +80,7 @@ export class CsvStorage implements IStorage {
   async createEntry(userId: string, insertEntry: InsertEntry): Promise<Entry> {
     const entries = await this.readEntries(userId);
     const id = entries.length > 0 ? Math.max(...entries.map(e => e.id)) + 1 : 1;
-    
+
     const entry: Entry = {
       ...insertEntry,
       id,
@@ -96,7 +97,7 @@ export class CsvStorage implements IStorage {
   async updateEntry(userId: string, id: number, updateEntry: Partial<InsertEntry>): Promise<Entry | undefined> {
     const entries = await this.readEntries(userId);
     const index = entries.findIndex(entry => entry.id === id);
-    
+
     if (index === -1) return undefined;
 
     const updated: Entry = {
@@ -114,7 +115,7 @@ export class CsvStorage implements IStorage {
   async deleteEntry(userId: string, id: number): Promise<boolean> {
     const entries = await this.readEntries(userId);
     const filtered = entries.filter(entry => entry.id !== id);
-    
+
     if (filtered.length === entries.length) {
       return false;
     }
@@ -125,3 +126,6 @@ export class CsvStorage implements IStorage {
 }
 
 export const storage = new CsvStorage();
+
+import csv from 'csv-parser';
+import { entries, type Entry, type InsertEntry } from "@shared/schema";
