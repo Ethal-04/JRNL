@@ -2,38 +2,25 @@ import { createObjectCsvWriter } from 'csv-writer';
 import { Entry } from '@shared/schema';
 import fs from 'fs';
 import path from 'path';
+import csv from 'csv-parser';
+import { entries, type InsertEntry } from "@shared/schema";
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR);
 }
 
-export const getUserDataPath = (username: string) => {
-  return path.join(DATA_DIR, `${username}.csv`);
-};
+const ENTRIES_FILE = path.join(DATA_DIR, 'entries.csv');
 
-export interface IStorage {
-  getEntries(userId: string): Promise<Entry[]>;
-  getEntry(userId: string, id: number): Promise<Entry | undefined>;
-  createEntry(userId: string, entry: InsertEntry): Promise<Entry>;
-  updateEntry(userId: string, id: number, entry: Partial<InsertEntry>): Promise<Entry | undefined>;
-  deleteEntry(userId: string, id: number): Promise<boolean>;
-}
-
-export class CsvStorage implements IStorage {
-  private getUserFile(userId: string) {
-    return getUserDataPath(userId); // Using the new function
-  }
-
-  private async readEntries(userId: string): Promise<Entry[]> {
-    const filePath = this.getUserFile(userId);
-    if (!fs.existsSync(filePath)) {
+export class CsvStorage {
+  private async readEntries(): Promise<Entry[]> {
+    if (!fs.existsSync(ENTRIES_FILE)) {
       return [];
     }
 
     return new Promise((resolve) => {
       const entries: Entry[] = [];
-      fs.createReadStream(filePath)
+      fs.createReadStream(ENTRIES_FILE)
         .pipe(csv())
         .on('data', (row) => {
           entries.push({
@@ -49,9 +36,9 @@ export class CsvStorage implements IStorage {
     });
   }
 
-  private async writeEntries(userId: string, entries: Entry[]) {
+  private async writeEntries(entries: Entry[]) {
     const csvWriter = createObjectCsvWriter({
-      path: this.getUserFile(userId),
+      path: ENTRIES_FILE,
       header: [
         { id: 'id', title: 'id' },
         { id: 'title', title: 'title' },
@@ -68,17 +55,17 @@ export class CsvStorage implements IStorage {
     })));
   }
 
-  async getEntries(userId: string): Promise<Entry[]> {
-    return this.readEntries(userId);
+  async getEntries(): Promise<Entry[]> {
+    return this.readEntries();
   }
 
-  async getEntry(userId: string, id: number): Promise<Entry | undefined> {
-    const entries = await this.readEntries(userId);
+  async getEntry(id: number): Promise<Entry | undefined> {
+    const entries = await this.readEntries();
     return entries.find(entry => entry.id === id);
   }
 
-  async createEntry(userId: string, insertEntry: InsertEntry): Promise<Entry> {
-    const entries = await this.readEntries(userId);
+  async createEntry(insertEntry: InsertEntry): Promise<Entry> {
+    const entries = await this.readEntries();
     const id = entries.length > 0 ? Math.max(...entries.map(e => e.id)) + 1 : 1;
 
     const entry: Entry = {
@@ -90,12 +77,12 @@ export class CsvStorage implements IStorage {
     };
 
     entries.push(entry);
-    await this.writeEntries(userId, entries);
+    await this.writeEntries(entries);
     return entry;
   }
 
-  async updateEntry(userId: string, id: number, updateEntry: Partial<InsertEntry>): Promise<Entry | undefined> {
-    const entries = await this.readEntries(userId);
+  async updateEntry(id: number, updateEntry: Partial<InsertEntry>): Promise<Entry | undefined> {
+    const entries = await this.readEntries();
     const index = entries.findIndex(entry => entry.id === id);
 
     if (index === -1) return undefined;
@@ -108,24 +95,21 @@ export class CsvStorage implements IStorage {
     };
 
     entries[index] = updated;
-    await this.writeEntries(userId, entries);
+    await this.writeEntries(entries);
     return updated;
   }
 
-  async deleteEntry(userId: string, id: number): Promise<boolean> {
-    const entries = await this.readEntries(userId);
+  async deleteEntry(id: number): Promise<boolean> {
+    const entries = await this.readEntries();
     const filtered = entries.filter(entry => entry.id !== id);
 
     if (filtered.length === entries.length) {
       return false;
     }
 
-    await this.writeEntries(userId, filtered);
+    await this.writeEntries(filtered);
     return true;
   }
 }
 
 export const storage = new CsvStorage();
-
-import csv from 'csv-parser';
-import { entries, type Entry, type InsertEntry } from "@shared/schema";
